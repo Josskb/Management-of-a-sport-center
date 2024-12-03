@@ -54,6 +54,11 @@ export default {
   border: none;
   padding: 1vh;
   border-radius: 10px;
+  
+}
+
+#user_log button:hover {
+  animation: shadow-drop-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
 #title {
@@ -82,5 +87,14 @@ nav a {
   text-decoration: none;
   color: white;
   font-weight: bold;
+}
+
+@keyframes shadow-drop-center {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35);
+  }
 }
 </style>

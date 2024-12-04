@@ -22,6 +22,14 @@ export default {
 </script>
 
 <style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+  width: 100%; 
+  box-sizing: border-box;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   text-align: center;
@@ -29,10 +37,9 @@ export default {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  padding-right: 0;
 }
 </style>

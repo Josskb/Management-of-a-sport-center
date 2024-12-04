@@ -11,18 +11,32 @@
   </div>
   <header class="header">
     <nav>
-      <ul>
-        <li><router-link to="/">Home</router-link></li> 
-        <li><router-link to="/about">About Us</router-link></li> 
-        <li><router-link to="/contact">Contact</router-link></li> 
-      </ul>
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
+      <router-link to="/contact">Contact</router-link>
+      <router-link to="/reservation">Reservation</router-link>
+      <router-link to="/account">Account</router-link>
     </nav>
   </header>
 </template>
 
 <script>
 export default {
-  name: 'SportCenterHeader'
+  name: 'SportCenterHeader',
+  data() {
+    return {
+      isLoggedIn: false,
+      userName: 'User'
+    };
+  },
+  methods: {
+    signIn() {
+      // Logic for sign in
+    },
+    logIn() {
+      // Logic for log in
+    }
+  }
 }
 </script>
 
@@ -32,7 +46,6 @@ export default {
   color: white;
   display: flex;
   flex-direction: row;
-  
 }
 
 #user_log {
@@ -54,7 +67,6 @@ export default {
   border: none;
   padding: 1vh;
   border-radius: 10px;
-  
 }
 
 #user_log button:hover {
@@ -76,17 +88,25 @@ export default {
   color: white;
 }
 
-nav ul {
+nav {
   list-style-type: none;
   display: flex;
   justify-content: center;
   gap: 2rem;
+  background-color: #767575;
+  border-radius: 10px;
+  text-decoration: none;
 }
 
-nav a {
+nav > * {
+  border-radius: 10px;
+  padding: 2px;
   text-decoration: none;
   color: white;
-  font-weight: bold;
+}
+
+nav :hover {
+  animation: shadow-drop-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
 @keyframes shadow-drop-center {

@@ -1,21 +1,19 @@
 <template>
   <div id="app">
     <AppHeader />
-    <MainSection />
+    <router-view />
     <AppFooter />
   </div>
 </template>
 
 <script>
 import AppHeader from './components/Header.vue';
-import MainSection from './components/MainSection.vue';
 import AppFooter from './components/Footer.vue';
 
 export default {
   name: 'App',
   components: {
     AppHeader,
-    MainSection,
     AppFooter
   }
 }
@@ -37,7 +35,7 @@ html, body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;

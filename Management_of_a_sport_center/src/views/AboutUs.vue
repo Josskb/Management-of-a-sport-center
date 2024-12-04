@@ -5,7 +5,7 @@
   </template>
   
   <script>
-  import AboutUsSection from '../components/AboutUsSection.vue'; // Import the AboutUsSection component
+  import AboutUsSection from '../components/AboutUsSection.vue'; 
   
   export default {
     name: 'AboutUs',
@@ -16,6 +16,6 @@
   </script>
   
   <style scoped>
-  /* You can add any additional styles for the AboutUs page here */
+
   </style>
   

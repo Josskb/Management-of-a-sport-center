@@ -2,18 +2,19 @@
   <div id="title_section">
     <h1 id="title">Sport Center Management</h1>
     <div id="user_log" v-if="!isLoggedIn">
-      <button @click="signIn">Sign In</button>
-      <button @click="logIn">Log In</button>
+      <router-link to="/signin"><button>Sign In</button></router-link>
+      <router-link to="/login"><button>Log In</button></router-link>
     </div>
     <div v-else>
-      <p>Hello, {{ userName }}</p>
+      <div id="account_LogIn">
+        <p>Hello, {{ userName }}</p>
+        <button @click="logOut">Log Out</button>
+      </div>
     </div>
   </div>
   <header class="header">
     <nav>
       <router-link to="/">Home</router-link>
-      <router-link to="/about">About</router-link>
-      <router-link to="/contact">Contact</router-link>
       <router-link to="/reservation">Reservation</router-link>
       <router-link to="/account">Account</router-link>
     </nav>
@@ -21,20 +22,27 @@
 </template>
 
 <script>
+import eventBus from '../eventBus';
+
 export default {
   name: 'SportCenterHeader',
   data() {
     return {
-      isLoggedIn: false,
-      userName: 'User'
+      eventBus
     };
   },
-  methods: {
-    signIn() {
-      // Logic for sign in
+  computed: {
+    isLoggedIn() {
+      return this.eventBus.isLoggedIn;
     },
-    logIn() {
-      // Logic for log in
+    userName() {
+      return this.eventBus.userName;
+    }
+  },
+  methods: {
+    logOut() {
+      this.eventBus.isLoggedIn = false;
+      this.eventBus.userName = '';
     }
   }
 }
@@ -61,7 +69,14 @@ export default {
   margin: 1vh;
 }
 
-#user_log button {
+#account_LogIn{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1dvh;
+}
+
+button {
   background-color: #595959;
   color: white;
   border: none;

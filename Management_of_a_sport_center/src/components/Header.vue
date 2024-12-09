@@ -43,6 +43,9 @@ export default {
     logOut() {
       this.eventBus.isLoggedIn = false;
       this.eventBus.userName = '';
+      localStorage.removeItem('token');
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userName');
     }
   }
 }
@@ -69,7 +72,7 @@ export default {
   margin: 1vh;
 }
 
-#account_LogIn{
+#account_LogIn {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -84,7 +87,7 @@ button {
   border-radius: 10px;
 }
 
-#user_log button:hover {
+button:hover {
   animation: shadow-drop-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 

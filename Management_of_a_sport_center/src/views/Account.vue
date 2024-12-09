@@ -2,7 +2,7 @@
   <div>
     <div class="compte">
       <h2>My Account</h2>
-      <p>Passed Reservation :</p>
+      <p>Passed Reservations:</p>
       <ul>
         <li v-for="(reservation, index) in reservations" :key="index" class="reservation-item">
           <span>{{ reservation.sport }} - {{ reservation.date }}</span>
@@ -14,20 +14,27 @@
 </template>
 
 <script>
-
+import axios from 'axios';
 
 export default {
   name: 'UserAccount',
-  components: {
-
-  },
   data() {
     return {
-      reservations: [
-        { sport: 'Football', date: '2024-12-05' },
-        { sport: 'Basketball', date: '2024-12-07' }
-      ]
+      reservations: []
     };
+  },
+  async mounted() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:3000/my-reservations', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      this.reservations = response.data;
+    } catch (error) {
+      console.error('Error fetching reservations:', error);
+    }
   },
   methods: {
     cancel(index) {

@@ -5,18 +5,29 @@
       <div v-for="sport in sports" :key="sport.name" class="sport-card">
         <h3>{{ sport.name }}</h3>
         <p>Price: {{ sport.price }}€</p>
-        <button class="btn-reserve" @click="reserve(sport)">Reserve</button>
+        <button class="btn-reserve" @click="openReservationModal(sport)">Reserve</button>
+      </div>
+    </div>
+
+    <div v-if="selectedSport" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeReservationModal">&times;</span>
+        <h2>Reserve {{ selectedSport.name }}</h2>
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" v-model="selectedDate" />
+        <button class="btn-reserve" @click="reserve">Confirm Reservation</button>
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+import eventBus from '../eventBus';
 
 export default {
   name: 'UserReservation',
-  components: {
-  },
   data() {
     return {
       sports: [
@@ -24,12 +35,48 @@ export default {
         { name: 'Basketball', price: 12 },
         { name: 'Tennis', price: 8 },
         { name: 'Badminton', price: 6 }
-      ]
+      ],
+      selectedSport: null,
+      selectedDate: '',
+      errorMessage: ''
     };
   },
   methods: {
-    reserve(sport) {
-      alert(`Réservation pour ${sport.name} à ${sport.price}€`);
+    openReservationModal(sport) {
+      if (!eventBus.isLoggedIn) {
+        alert('You must be logged in to make a reservation.');
+        return;
+      }
+      this.selectedSport = sport;
+    },
+    closeReservationModal() {
+      this.selectedSport = null;
+      this.selectedDate = '';
+      this.errorMessage = '';
+    },
+    async reserve() {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('Token:', token); // Debug log to verify the token
+        if (!token) {
+          this.errorMessage = 'No token found. Please log in again.';
+          return;
+        }
+
+        const response = await axios.post('http://localhost:3000/reservations', {
+          sport: this.selectedSport.name,
+          date: this.selectedDate
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        alert(response.data.message);
+        this.closeReservationModal();
+        this.$router.push('/account'); // Redirect to account page to refresh reservations
+      } catch (error) {
+        this.errorMessage = error.response.data.message;
+      }
     }
   }
 }
@@ -87,5 +134,38 @@ p {
 
 .btn-reserve:hover {
   background-color: #C0392B;
+}
+
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
 </style>

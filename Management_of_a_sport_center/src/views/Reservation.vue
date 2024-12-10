@@ -63,6 +63,19 @@ export default {
           return;
         }
 
+        // Check if no date is selected
+        if (!this.selectedDate) {
+          this.errorMessage = 'You have to choose a date';
+          return;
+        }
+
+        // Check if the date is before today
+        const today = new Date().toISOString().split('T')[0];
+        if (this.selectedDate < today) {
+          this.errorMessage = 'Cannot reserve a date before today';
+          return;
+        }
+
         const response = await axios.post('http://localhost:3000/reservations', {
           sport: this.selectedSport.name,
           date: this.selectedDate

@@ -101,6 +101,12 @@ app.get('/my-reservations', authenticateJWT, (req, res) => {
 app.post('/reservations', authenticateJWT, (req, res) => {
   const { sport, date } = req.body;
 
+  // Check if the date is before today
+  const today = new Date().toISOString().split('T')[0];
+  if (date < today) {
+    return res.status(400).json({ message: 'Cannot reserve a date before today' });
+  }
+
   // Check if the date is already reserved
   const isReserved = reservations.some(reservation => reservation.sport === sport && reservation.date === date);
 
@@ -110,6 +116,20 @@ app.post('/reservations', authenticateJWT, (req, res) => {
 
   reservations.push({ sport, date, user: req.user.username });
   res.status(201).json({ message: 'Reservation created successfully' });
+});
+
+// Endpoint to cancel a reservation
+app.post('/cancel-reservation', authenticateJWT, (req, res) => {
+  const { sport, date } = req.body;
+
+  const reservationIndex = reservations.findIndex(reservation => reservation.sport === sport && reservation.date === date && reservation.user === req.user.username);
+
+  if (reservationIndex === -1) {
+    return res.status(400).json({ message: 'Reservation not found' });
+  }
+
+  reservations.splice(reservationIndex, 1);
+  res.status(200).json({ message: 'Reservation canceled successfully' });
 });
 
 // Endpoint to get the list of all users

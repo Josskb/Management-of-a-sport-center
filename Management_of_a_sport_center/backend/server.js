@@ -6,67 +6,85 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const { Sequelize, DataTypes } = require('sequelize');
+require('dotenv').config(); // Correctly load .env file
 
 const app = express();
 const port = 3000;
-const secretKey = 'your_hardcoded_secret_key'; // Use a hardcoded secret key
+const secretKey = process.env.SECRET_KEY; // Use the secret key from environment variables
 
+// Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from your frontend URL
+  credentials: true,
+}));
 app.use(helmet());
-app.use(cookieParser()); // Add cookie-parser middleware
+app.use(cookieParser());
 
-const users = [];
-const reservations = [];
-
-// Rate limiter middleware
+// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 100, // Limit each IP
+  standardHeaders: true,
+  legacyHeaders: false,
   message: 'Too many requests, please try again later.'
 });
-
 app.use(limiter);
 
-app.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
+console.log(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST);
 
-  // Validate that username, email, and password are provided
-  if (!username || !email || !password) {
-    return res.status(400).json({ message: 'Username, email, and password are required' });
-  }
-
-  const userExists = users.some(user => user.email === email);
-
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  users.push({ username, email, password: hashedPassword });
-
-  const token = jwt.sign({ email, username }, secretKey, { expiresIn: '1h' });
-  res.status(201).json({ message: 'User signed up successfully', token, username });
+// Initialize Sequelize
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
+  dialect: 'mysql',
 });
 
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find(user => user.email === email);
+// Test Database Connection
+sequelize.authenticate()
+  .then(() => console.log('Database connected successfully'))
+  .catch((error) => console.error('Unable to connect to the database:', error));
 
-  if (!user) {
-    return res.status(400).json({ message: 'Invalid email or password' });
+// Define User Model
+const User = sequelize.define('User', {
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(400).json({ message: 'Invalid email or password' });
-  }
-
-  const token = jwt.sign({ email: user.email, username: user.username }, secretKey, { expiresIn: '1h' });
-  res.status(200).json({ message: 'User logged in successfully', token, username: user.username });
 });
 
-// Middleware to authenticate JWT
+// Define Reservation Model
+const Reservation = sequelize.define('Reservation', {
+  sport: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: User,
+      key: 'id'
+    }
+  }
+});
+
+// Sync Models with Database
+sequelize.sync();
+
+// JWT Authentication Middleware
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -86,57 +104,102 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// Endpoint to get all reservations
-app.get('/reservations', (req, res) => {
+// Routes
+app.post('/signup', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'Username, email, and password are required' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, email, password: hashedPassword });
+
+    console.log('User created:', user); // Debug log to verify user creation
+
+    const token = jwt.sign({ email, username }, secretKey, { expiresIn: '1h' });
+    res.status(201).json({ message: 'User signed up successfully', token, username });
+  } catch (error) {
+    console.error('Error creating user:', error); // Debug log to verify error
+    res.status(400).json({ message: 'User already exists' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      console.log('User not found:', email); // Debug log to verify user not found
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log('Invalid password for user:', email); // Debug log to verify invalid password
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    const token = jwt.sign({ email: user.email, username: user.username }, secretKey, { expiresIn: '1h' });
+    res.status(200).json({ message: 'User logged in successfully', token, username: user.username });
+  } catch (error) {
+    console.error('Error logging in:', error); // Debug log to verify error
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/reservations', async (req, res) => {
+  const reservations = await Reservation.findAll();
   res.status(200).json(reservations);
 });
 
-// Endpoint to get reservations for the logged-in user
-app.get('/my-reservations', authenticateJWT, (req, res) => {
-  const userReservations = reservations.filter(reservation => reservation.user === req.user.username);
+app.get('/my-reservations', authenticateJWT, async (req, res) => {
+  const user = await User.findOne({ where: { email: req.user.email } });
+  const userReservations = await Reservation.findAll({ where: { userId: user.id } });
   res.status(200).json(userReservations);
 });
 
-// Endpoint to create a reservation
-app.post('/reservations', authenticateJWT, (req, res) => {
+app.post('/reservations', authenticateJWT, async (req, res) => {
   const { sport, date } = req.body;
 
-  // Check if the date is before today
   const today = new Date().toISOString().split('T')[0];
   if (date < today) {
     return res.status(400).json({ message: 'Cannot reserve a date before today' });
   }
 
-  // Check if the date is already reserved
-  const isReserved = reservations.some(reservation => reservation.sport === sport && reservation.date === date);
-
+  const isReserved = await Reservation.findOne({ where: { sport, date } });
   if (isReserved) {
     return res.status(400).json({ message: 'Date already reserved' });
   }
 
-  reservations.push({ sport, date, user: req.user.username });
+  const user = await User.findOne({ where: { email: req.user.email } });
+  await Reservation.create({ sport, date, userId: user.id });
   res.status(201).json({ message: 'Reservation created successfully' });
 });
 
-// Endpoint to cancel a reservation
-app.post('/cancel-reservation', authenticateJWT, (req, res) => {
+app.post('/cancel-reservation', authenticateJWT, async (req, res) => {
   const { sport, date } = req.body;
 
-  const reservationIndex = reservations.findIndex(reservation => reservation.sport === sport && reservation.date === date && reservation.user === req.user.username);
+  const user = await User.findOne({ where: { email: req.user.email } });
+  const reservation = await Reservation.findOne({ where: { sport, date, userId: user.id } });
 
-  if (reservationIndex === -1) {
+  if (!reservation) {
     return res.status(400).json({ message: 'Reservation not found' });
   }
 
-  reservations.splice(reservationIndex, 1);
+  await reservation.destroy();
   res.status(200).json({ message: 'Reservation canceled successfully' });
 });
 
-// Endpoint to get the list of all users
-app.get('/users', (req, res) => {
+app.get('/users', async (req, res) => {
+  const users = await User.findAll();
   res.status(200).json(users);
 });
 
+// Start Server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

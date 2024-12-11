@@ -57,6 +57,7 @@ export default {
         this.form.email = '';
         this.form.password = '';
       } catch (error) {
+        console.error('Error signing up:', error); // Debug log to verify error
         alert(error.response.data.message);
       }
     }

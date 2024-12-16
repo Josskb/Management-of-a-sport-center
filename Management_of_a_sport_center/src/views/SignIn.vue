@@ -14,6 +14,10 @@
         <label for="password">Password:</label>
         <input type="password" id="password" v-model="form.password" required />
       </div>
+      <!-- <div class="form-group">
+        <label for="isAdmin">Admin:</label>
+        <input type="checkbox" id="isAdmin" v-model="form.isAdmin" />
+      </div> -->
       <button type="submit" class="btn-submit">Sign In</button>
     </form>
   </div>
@@ -30,7 +34,8 @@ export default {
       form: {
         username: '',
         email: '',
-        password: ''
+        password: '',
+        isAdmin: false
       }
     };
   },
@@ -40,14 +45,18 @@ export default {
         const response = await axios.post('http://localhost:3000/signup', this.form);
         alert(response.data.message);
 
-        // Store the token in local storage
+        // Store the token and admin status in local storage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('isLoggedIn', true);
         localStorage.setItem('userName', response.data.username);
+        localStorage.setItem('userEmail', response.data.email); // Store email
+        localStorage.setItem('isAdmin', response.data.isAdmin);
 
         // Emit the signIn event
         eventBus.isLoggedIn = true;
         eventBus.userName = response.data.username;
+        eventBus.email = response.data.email; // Emit email
+        eventBus.isAdmin = response.data.isAdmin;
 
         // Redirect to account page
         this.$router.push('/account');
@@ -56,6 +65,7 @@ export default {
         this.form.username = '';
         this.form.email = '';
         this.form.password = '';
+        this.form.isAdmin = false;
       } catch (error) {
         console.error('Error signing up:', error); // Debug log to verify error
         alert(error.response.data.message);

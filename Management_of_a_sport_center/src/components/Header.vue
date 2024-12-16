@@ -16,7 +16,8 @@
     <nav>
       <router-link to="/">Home</router-link>
       <router-link to="/reservation">Reservation</router-link>
-      <router-link to="/account">Account</router-link>
+      <router-link v-if="isLoggedIn" to="/account">Account</router-link>
+      <router-link v-if="isAdmin" to="/admin">Admin</router-link>
     </nav>
   </header>
 </template>
@@ -37,15 +38,20 @@ export default {
     },
     userName() {
       return this.eventBus.userName;
+    },
+    isAdmin() {
+      return this.eventBus.isAdmin;
     }
   },
   methods: {
     logOut() {
       this.eventBus.isLoggedIn = false;
       this.eventBus.userName = '';
+      this.eventBus.isAdmin = false;
       localStorage.removeItem('token');
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('userName');
+      localStorage.removeItem('isAdmin');
     }
   }
 }
@@ -94,10 +100,13 @@ button:hover {
 #title {
   text-align: center;
   color: white;
-  padding: 1vh;
+  padding: 3vh;
+  padding-left: 25vh;
   font-size: 2rem;
   font-weight: bold;
   margin: 0 auto;
+  display: flex;
+  justify-content: center;
 }
 
 .header {

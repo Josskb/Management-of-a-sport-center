@@ -1,11 +1,35 @@
 <template>
-  <div>
+  <div class="account-page">
     <div class="compte">
       <h2>My Account</h2>
+      <p>Basket:</p>
+      <ul>
+        <li v-for="(reservation, index) in basket" :key="index" class="reservation-item">
+          <div class="reservation-details">
+            <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
+            <div class="reservation-info">
+              <h3>{{ reservation.name }}</h3>
+              <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
+              <p>{{ reservation.date }}</p>
+              <p>{{ reservation.price }}€</p>
+            </div>
+          </div>
+          <button class="btn-cancel" @click="removeFromBasket(index)">Remove</button>
+        </li>
+      </ul>
+      <p>Total Price: {{ totalPrice }}€</p>
+      <button class="btn-pay" @click="openPaymentModal">Pay</button>
       <p>Passed Reservations:</p>
       <ul>
         <li v-for="(reservation, index) in reservations" :key="index" class="reservation-item">
-          <span>{{ reservation.sport }} - {{ reservation.date }}</span>
+          <div class="reservation-details">
+            <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
+            <div class="reservation-info">
+              <h3>{{ reservation.name }}</h3>
+              <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
+              <p>{{ reservation.date }}</p>
+            </div>
+          </div>
           <button class="btn-cancel" @click="confirmCancel(index)">Cancel</button>
         </li>
       </ul>
@@ -16,6 +40,19 @@
         <h2>Are you sure you want to cancel this reservation?</h2>
         <button class="btn-confirm" @click="closeConfirmDialog">No</button>
         <button class="btn-cancel" @click="cancelReservation">Yes</button>
+      </div>
+    </div>
+    <div v-if="showPaymentModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closePaymentModal">&times;</span>
+        <h2>Confirm Payment</h2>
+        <p>Total Price: {{ totalPrice }}€</p>
+        <label for="paymentMethod">Payment Method:</label>
+        <select id="paymentMethod" v-model="paymentMethod">
+          <option value="card">Card</option>
+          <option value="cash">Cash</option>
+        </select>
+        <button class="btn-confirm" @click="confirmPayment">Confirm Payment</button>
       </div>
     </div>
   </div>
@@ -29,9 +66,17 @@ export default {
   data() {
     return {
       reservations: [],
+      basket: [],
       showConfirmDialog: false,
-      reservationToCancel: null
+      showPaymentModal: false,
+      reservationToCancel: null,
+      paymentMethod: 'card'
     };
+  },
+  computed: {
+    totalPrice() {
+      return this.basket.reduce((total, reservation) => total + parseFloat(reservation.price), 0);
+    }
   },
   async mounted() {
     try {
@@ -41,7 +86,18 @@ export default {
           'Authorization': `Bearer ${token}`
         }
       });
-      this.reservations = response.data;
+      this.reservations = response.data.filter(reservation => reservation.confirmed).map(reservation => ({
+        ...reservation,
+        name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
+        imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
+        price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
+      }));
+      this.basket = response.data.filter(reservation => !reservation.confirmed).map(reservation => ({
+        ...reservation,
+        name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
+        imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
+        price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
+      }));
     } catch (error) {
       console.error('Error fetching reservations:', error);
     }
@@ -60,7 +116,8 @@ export default {
         const token = localStorage.getItem('token');
         const reservation = this.reservations[this.reservationToCancel];
         const response = await axios.post('http://localhost:3000/cancel-reservation', {
-          sport: reservation.sport,
+          type: reservation.type,
+          item_id: reservation.item_id,
           date: reservation.date
         }, {
           headers: {
@@ -73,26 +130,81 @@ export default {
       } catch (error) {
         console.error('Error canceling reservation:', error);
       }
+    },
+    openPaymentModal() {
+      this.showPaymentModal = true;
+    },
+    closePaymentModal() {
+      this.showPaymentModal = false;
+    },
+    async confirmPayment() {
+      try {
+        const token = localStorage.getItem('token');
+        for (const reservation of this.basket) {
+          await axios.post('http://localhost:3000/confirm-reservation', {
+            type: reservation.type,
+            item_id: reservation.item_id,
+            date: reservation.date
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+        }
+        alert(`Payment successful and reservations confirmed! Payment method: ${this.paymentMethod}`);
+        this.reservations.push(...this.basket);
+        this.basket = [];
+        this.closePaymentModal();
+      } catch (error) {
+        console.error('Error confirming payment:', error);
+      }
+    },
+    async removeFromBasket(index) {
+      try {
+        const token = localStorage.getItem('token');
+        const reservation = this.basket[index];
+        await axios.post('http://localhost:3000/remove-from-basket', {
+          type: reservation.type,
+          item_id: reservation.item_id,
+          date: reservation.date
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        this.basket.splice(index, 1);
+      } catch (error) {
+        console.error('Error removing from basket:', error);
+      }
     }
   }
 }
 </script>
 
 <style scoped>
+.account-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #ece9e6, #ffffff);
+  padding: 20px;
+  overflow-y: auto; 
+}
+
 .compte {
   text-align: center;
   padding: 30px;
   background-color: #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  max-width: 1000px;
-  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
 }
 
 h2 {
   font-size: 2.5em;
   color: #34495E;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 ul {
@@ -110,12 +222,36 @@ ul {
   align-items: center;
 }
 
-.reservation-item span {
-  font-size: 1.2em;
+.reservation-details {
+  display: flex;
+  align-items: center;
+}
+
+.reservation-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.reservation-info {
+  text-align: left;
+}
+
+.reservation-info h3 {
+  margin: 0;
+  font-size: 1.5em;
   color: #2C3E50;
 }
 
-.btn-cancel {
+.reservation-info p {
+  margin: 5px 0;
+  font-size: 1em;
+  color: #7F8C8D;
+}
+
+.btn-cancel, .btn-confirm, .btn-pay {
   background-color: #E74C3C;
   color: white;
   border: none;
@@ -126,7 +262,7 @@ ul {
   transition: background-color 0.3s;
 }
 
-.btn-cancel:hover {
+.btn-cancel:hover, .btn-confirm:hover, .btn-pay:hover {
   background-color: #C0392B;
 }
 
@@ -140,6 +276,7 @@ ul {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
 .modal-content {
@@ -148,6 +285,8 @@ ul {
   border-radius: 8px;
   text-align: center;
   position: relative;
+  max-width: 500px;
+  width: 100%;
 }
 
 .close {
@@ -158,24 +297,17 @@ ul {
   cursor: pointer;
 }
 
-.btn-confirm {
-  background-color: #95a59c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s;
-  margin: 10px;
-}
-
-.btn-confirm:hover {
-  background-color: #676e6a;
-}
-
 .error {
   color: red;
   margin-top: 10px;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  margin-bottom: 20px;
 }
 </style>

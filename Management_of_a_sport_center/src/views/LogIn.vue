@@ -35,16 +35,21 @@ export default {
         const response = await axios.post('http://localhost:3000/login', this.form);
         alert(response.data.message);
 
-        // Store the token in local storage
+        // Store the token and admin status in local storage
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('isLoggedIn', true);
+        localStorage.setItem('isLoggedIn', JSON.stringify(true));
         localStorage.setItem('userName', response.data.username);
+        localStorage.setItem('userEmail', response.data.email); // Store email
+        localStorage.setItem('isAdmin', JSON.stringify(response.data.isAdmin));
 
+        console.log(response.data.isAdmin);
         console.log('Token stored:', localStorage.getItem('token')); // Debug log to verify the token
 
         // Emit the logIn event
         eventBus.isLoggedIn = true;
         eventBus.userName = response.data.username;
+        eventBus.email = response.data.email; // Emit email
+        eventBus.isAdmin = response.data.isAdmin;
 
         // Redirect to account page
         this.$router.push('/account');

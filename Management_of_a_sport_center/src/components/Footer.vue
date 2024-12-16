@@ -21,6 +21,7 @@ export default {
   color: white;
   padding: 1rem;
   text-align: center;
+  position: relative;
 }
 
 .footer nav {

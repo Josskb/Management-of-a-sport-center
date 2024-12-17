@@ -10,6 +10,7 @@ Welcome to the Management of a Sport Center project! This application helps mana
 - [Frontend Setup](#frontend-setup)
 - [API Endpoints](#api-endpoints)
 - [Security Measures](#security-measures)
+- [Admin User](#admin-user)
 - [License](#license)
 
 ## Recommended IDE Setup
@@ -31,10 +32,27 @@ Welcome to the Management of a Sport Center project! This application helps mana
    npm install
    ```
 
-3. **Run the backend server**:
+3. **Initialize the database**:
+   ```sh
+   sqlite3 database.sqlite < initialize_database.sql
+   ```
+
+4. **Run the backend server**:
    ```sh
    node server.js
    ```
+
+> Note: Ensure you have installed all the libraries listed in `server.js`:
+> - express
+> - body-parser
+> - cors
+> - bcryptjs
+> - jsonwebtoken
+> - express-rate-limit
+> - helmet
+> - cookie-parser
+> - sequelize
+> - dotenv
 
 ### Frontend Setup
 
@@ -127,6 +145,12 @@ Welcome to the Management of a Sport Center project! This application helps mana
 - **Rate Limiting**: Express-rate-limit is used to limit the number of requests to the API.
 - **CSRF Protection**: CSRF tokens are used to protect against cross-site request forgery attacks.
 - **Secure HTTP Headers**: Helmet is used to set secure HTTP headers.
+
+## Admin User
+
+To try the website with admin privileges, you can use the following credentials:
+- **Email**: admin@admin.fr
+- **Password**: admin
 
 ## License
 

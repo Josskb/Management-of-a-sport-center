@@ -11,6 +11,12 @@
       
       <h3>Our History</h3>
       <p>Founded in 1960, our sports center has evolved to become a leading facility in the community, offering a wide range of activities and programs.</p>
+      
+      <h3>Our Facilities</h3>
+      <p>We offer state-of-the-art facilities including a gym, swimming pool, tennis courts, and more. Our facilities are designed to cater to all your sports and fitness needs.</p>
+      
+      <h3>Our Programs</h3>
+      <p>We provide a variety of programs including fitness classes, sports training, and wellness workshops. Our programs are designed to help you stay active and healthy.</p>
     </div>
   </template>
   

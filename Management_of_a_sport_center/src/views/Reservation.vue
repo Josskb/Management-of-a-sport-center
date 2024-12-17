@@ -161,12 +161,14 @@ export default {
 
 .reservation {
   text-align: center;
-  padding: 30px;
+  padding: 10px;
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   max-width: 1000px;
+  max-height: 60vh;
   margin: 20px auto; /* Add margin to avoid overlapping */
+  padding-bottom: 5vh;
 }
 
 h2 {
@@ -180,7 +182,7 @@ h2 {
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-  max-height: 500px; /* Set a maximum height */
+  max-height: 50vh; /* Set a maximum height */
   overflow-y: auto; /* Enable vertical scrolling */
 }
 

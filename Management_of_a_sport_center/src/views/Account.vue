@@ -197,7 +197,7 @@ export default {
   max-width: 800px;
   width: 100%;
   overflow-y: auto; /* Added to make the content scrollable */
-  max-height: 90vh; /* Added to limit the height of the content */
+  max-height: 60vh; /* Added to limit the height of the content */
 }
 
 h2 {

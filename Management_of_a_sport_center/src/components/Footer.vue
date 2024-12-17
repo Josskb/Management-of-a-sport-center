@@ -5,7 +5,6 @@
       <router-link to="/contact">Contact</router-link>
     </nav>
     <p>&copy; 2024 KEIB Josselin and SANCESARIO Tom. All Rights Reserved.</p>
-    
   </footer>
 </template>
 
@@ -21,7 +20,9 @@ export default {
   color: white;
   padding: 1rem;
   text-align: center;
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
 
 .footer nav {
@@ -30,7 +31,7 @@ export default {
   justify-content: center;
 }
 
-.footer a{
+.footer a {
   color: white;
   text-decoration: none;
   background-color: #595959;
@@ -39,7 +40,7 @@ export default {
   margin-top: 10px;
 }
 
-.footer a:hover{
+.footer a:hover {
   animation: shadow-drop-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 

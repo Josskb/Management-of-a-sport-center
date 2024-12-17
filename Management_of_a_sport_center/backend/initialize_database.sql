@@ -84,3 +84,13 @@ INSERT INTO users VALUES
 (1, 'dems', 'dems@dems.fr', '$2a$10$aHE3s7QCJj89JrsP0nb1huyiCa04GRlfd/2S21VkzBrBuMdisW2ky', '2024-12-12 06:31:36', '2024-12-12 06:31:36', 0),
 (4, 'admin', 'admin@admin.fr', '$2a$10$mWU.s0.Yc.VpO4bMceIQDeiy3IgNJv1Pg1U9RklOipcFsEymNp8bi', '2024-12-12 07:45:12', '2024-12-12 07:45:12', 1),
 (5, 'admin2', 'admin2@admin.fr', '$2a$10$7yugsnSsNJ/4ODkdZIIc8.IlWMGFa16wn7SJeszvl8G1MnhgqNZDC', '2024-12-12 09:51:57', '2024-12-12 09:51:57', 1);
+
+-- Table: payment
+CREATE TABLE IF NOT EXISTS payment (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    amount DECIMAL(10, 2),
+    payment_date DATETIME,
+    payment_method ENUM('card', 'cash'),
+    reservation_id INT,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);

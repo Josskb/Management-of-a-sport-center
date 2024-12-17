@@ -104,7 +104,7 @@ const Field = sequelize.define('Field', {
   },
   imageUrl: {
     type: DataTypes.STRING,
-    allowNull: true // URL de l'image du terrain
+    allowNull: true 
   }
 }, {
   timestamps: true // Ensure timestamps are enabled
@@ -155,6 +155,31 @@ const Reservation = sequelize.define('Reservation', {
   confirmed: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  }
+}, {
+  timestamps: true // Ensure timestamps are enabled
+});
+
+const Payment = sequelize.define('Payment', {
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
+  },
+  payment_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW
+  },
+  payment_method: {
+    type: DataTypes.ENUM('card', 'cash'),
+    allowNull: false
+  },
+  reservation_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Reservation,
+      key: 'id'
+    }
   }
 }, {
   timestamps: true // Ensure timestamps are enabled
@@ -338,6 +363,44 @@ app.post('/remove-from-basket', authenticateJWT, async (req, res) => {
     res.status(200).json({ message: 'Reservation removed from basket successfully' });
   } catch (error) {
     console.error('Error removing from basket:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/confirm-payment', authenticateJWT, async (req, res) => {
+  const { paymentMethod } = req.body;
+
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, secretKey);
+    const user = await User.findOne({ where: { email: decoded.email } });
+
+    const reservations = await Reservation.findAll({
+      where: { user_id: user.id, confirmed: false },
+      include: [
+        { model: Equipment, as: 'Equipment' },
+        { model: Field, as: 'Field' }
+      ]
+    });
+
+    let totalAmount = 0;
+    for (const reservation of reservations) {
+      totalAmount += parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price);
+      reservation.confirmed = true;
+      await reservation.save();
+    }
+
+    for (const reservation of reservations) {
+      await Payment.create({
+        amount: reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price,
+        payment_method: paymentMethod,
+        reservation_id: reservation.id
+      });
+    }
+
+    res.status(200).json({ message: 'Payment successful and reservations confirmed!' });
+  } catch (error) {
+    console.error('Error confirming payment:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

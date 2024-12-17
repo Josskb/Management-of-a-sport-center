@@ -542,6 +542,7 @@ export default {
   background: linear-gradient(to right, #ece9e6, #ffffff);
   padding: 20px;
   overflow-y: auto; /* Enable vertical scrolling */
+  padding-bottom: 40vh;
 }
 
 .admin {
@@ -552,6 +553,8 @@ export default {
   border-radius: 12px;
   max-width: 800px;
   width: 100%;
+  margin: 0 auto;
+  margin-top: 20vh;
 }
 
 h2 {

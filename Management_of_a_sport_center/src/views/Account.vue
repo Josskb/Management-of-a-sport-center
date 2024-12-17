@@ -140,18 +140,14 @@ export default {
     async confirmPayment() {
       try {
         const token = localStorage.getItem('token');
-        for (const reservation of this.basket) {
-          await axios.post('http://localhost:3000/confirm-reservation', {
-            type: reservation.type,
-            item_id: reservation.item_id,
-            date: reservation.date
-          }, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-        }
-        alert(`Payment successful and reservations confirmed! Payment method: ${this.paymentMethod}`);
+        const response = await axios.post('http://localhost:3000/confirm-payment', {
+          paymentMethod: this.paymentMethod
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        alert(response.data.message);
         this.reservations.push(...this.basket);
         this.basket = [];
         this.closePaymentModal();
@@ -185,10 +181,11 @@ export default {
 .account-page {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to flex-start */
   background: linear-gradient(to right, #ece9e6, #ffffff);
   padding: 20px;
   overflow-y: auto; 
+  height: 100vh; /* Added to make the page take full viewport height */
 }
 
 .compte {
@@ -199,6 +196,8 @@ export default {
   border-radius: 12px;
   max-width: 800px;
   width: 100%;
+  overflow-y: auto; /* Added to make the content scrollable */
+  max-height: 90vh; /* Added to limit the height of the content */
 }
 
 h2 {

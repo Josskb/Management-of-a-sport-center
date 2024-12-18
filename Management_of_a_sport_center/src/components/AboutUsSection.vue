@@ -35,6 +35,7 @@
     border-radius: 8px;
     max-width: 800px;
     margin: 0 auto;
+    height:120vh;
   }
   
   h2 {

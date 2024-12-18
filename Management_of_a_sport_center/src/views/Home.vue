@@ -102,6 +102,7 @@ export default {
   text-align: center;
   background: linear-gradient(to right, #ece9e6, #ffffff);
   padding: 20px;
+  padding-bottom: 150px;
 }
 
 .hero {
@@ -157,6 +158,7 @@ export default {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   margin: 20px 0;
+
 }
 
 .intro h2, .features h2, .testimonials h2, .auth-prompt h2 {

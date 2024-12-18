@@ -32,7 +32,7 @@ export default {
   methods: {
     async submitForm() {
       try {
-        const response = await axios.post('http://localhost:3000/login', this.form);
+        const response = await axios.post('http://localhost:3000/auth/login', this.form); // Ensure the correct endpoint
         alert(response.data.message);
 
         // Store the token and admin status in local storage

@@ -144,4 +144,28 @@ nav :hover {
     box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35);
   }
 }
+
+@media (max-width: 768px) {
+  #account_LogIn{
+    
+  }
+
+  #user_log{
+    width: 19%;
+    margin: 0;
+  }
+
+  #title {
+    padding-left: 0;
+    font-size: 1.5rem;
+    position : center;
+  }
+}
+
+@media (max-width: 480px) {
+  #user_log, #account_LogIn {
+    margin-left: 1rem;
+    width :50%;
+  }
+}
 </style>

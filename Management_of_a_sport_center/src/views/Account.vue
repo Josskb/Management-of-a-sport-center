@@ -2,37 +2,43 @@
   <div class="account-page">
     <div class="compte">
       <h2>My Account</h2>
-      <p>Basket:</p>
-      <ul>
-        <li v-for="(reservation, index) in basket" :key="index" class="reservation-item">
-          <div class="reservation-details">
-            <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
-            <div class="reservation-info">
-              <h3>{{ reservation.name }}</h3>
-              <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
-              <p>{{ reservation.date }}</p>
-              <p>{{ reservation.price }}€</p>
+      <div v-if="basket.length > 0" class="section">
+        <p class="section-title">
+          <img src="../assets/basket-icon.png" alt="Basket Icon" class="icon"> Basket:
+        </p>
+        <ul>
+          <li v-for="(reservation, index) in basket" :key="index" class="reservation-item">
+            <div class="reservation-details">
+              <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
+              <div class="reservation-info">
+                <h3>{{ reservation.name }}</h3>
+                <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
+                <p>{{ reservation.date }}</p>
+                <p>{{ reservation.price }}€</p>
+              </div>
             </div>
-          </div>
-          <button class="btn-cancel" @click="removeFromBasket(index)">Remove</button>
-        </li>
-      </ul>
-      <p>Total Price: {{ totalPrice }}€</p>
-      <button class="btn-pay" @click="openPaymentModal">Pay</button>
-      <p>Passed Reservations:</p>
-      <ul>
-        <li v-for="(reservation, index) in reservations" :key="index" class="reservation-item">
-          <div class="reservation-details">
-            <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
-            <div class="reservation-info">
-              <h3>{{ reservation.name }}</h3>
-              <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
-              <p>{{ reservation.date }}</p>
+            <button class="btn-cancel" @click="removeFromBasket(index)">Remove</button>
+          </li>
+        </ul>
+        <p class="total-price">Total Price: {{ totalPrice }}€</p>
+        <button class="btn-pay" @click="openPaymentModal">Pay</button>
+      </div>
+      <div class="section">
+        <p class="section-title">Passed Reservations:</p>
+        <ul>
+          <li v-for="(reservation, index) in reservations" :key="index" class="reservation-item">
+            <div class="reservation-details">
+              <img :src="reservation.imageUrl" alt="Reservation Image" class="reservation-image" v-if="reservation.imageUrl">
+              <div class="reservation-info">
+                <h3>{{ reservation.name }}</h3>
+                <p>{{ reservation.type === 'equipment' ? 'Equipment' : 'Field' }}</p>
+                <p>{{ reservation.date }}</p>
+              </div>
             </div>
-          </div>
-          <button class="btn-cancel" @click="confirmCancel(index)">Cancel</button>
-        </li>
-      </ul>
+            <button class="btn-cancel" @click="confirmCancel(index)">Cancel</button>
+          </li>
+        </ul>
+      </div>
     </div>
     <div v-if="showConfirmDialog" class="modal">
       <div class="modal-content">
@@ -80,27 +86,30 @@ export default {
   },
   async mounted() {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/my-reservations', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      this.reservations = response.data.filter(reservation => reservation.confirmed).map(reservation => ({
-        ...reservation,
-        name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
-        imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
-        price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
-      }));
-      this.basket = response.data.filter(reservation => !reservation.confirmed).map(reservation => ({
-        ...reservation,
-        name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
-        imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
-        price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
-      }));
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
     }
+    const response = await axios.get('http://localhost:3000/reservations/my-reservations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    this.reservations = response.data.filter(reservation => reservation.confirmed).map(reservation => ({
+      ...reservation,
+      name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
+      imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
+      price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
+    }));
+    this.basket = response.data.filter(reservation => !reservation.confirmed).map(reservation => ({
+      ...reservation,
+      name: reservation.type === 'equipment' ? reservation.Equipment.name : reservation.Field.name,
+      imageUrl: reservation.type === 'equipment' ? reservation.Equipment.imageUrl : reservation.Field.imageUrl,
+      price: parseFloat(reservation.type === 'equipment' ? reservation.Equipment.price : reservation.Field.price)
+    }));
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+  }
   },
   methods: {
     confirmCancel(index) {
@@ -115,7 +124,7 @@ export default {
       try {
         const token = localStorage.getItem('token');
         const reservation = this.reservations[this.reservationToCancel];
-        const response = await axios.post('http://localhost:3000/cancel-reservation', {
+        const response = await axios.post('http://localhost:3000/reservations/cancel-reservation', {
           type: reservation.type,
           item_id: reservation.item_id,
           date: reservation.date
@@ -140,7 +149,7 @@ export default {
     async confirmPayment() {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:3000/confirm-payment', {
+        const response = await axios.post('http://localhost:3000/reservations/confirm-payment', {
           paymentMethod: this.paymentMethod
         }, {
           headers: {
@@ -159,7 +168,7 @@ export default {
       try {
         const token = localStorage.getItem('token');
         const reservation = this.basket[index];
-        await axios.post('http://localhost:3000/remove-from-basket', {
+        await axios.post('http://localhost:3000/reservations/remove-from-basket', {
           type: reservation.type,
           item_id: reservation.item_id,
           date: reservation.date
@@ -181,11 +190,11 @@ export default {
 .account-page {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Changed from center to flex-start */
+  align-items: flex-start;
   background: linear-gradient(to right, #ece9e6, #ffffff);
   padding: 20px;
-  overflow-y: auto; 
-  height: 100vh; /* Added to make the page take full viewport height */
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .compte {
@@ -196,14 +205,32 @@ export default {
   border-radius: 12px;
   max-width: 800px;
   width: 100%;
-  overflow-y: auto; /* Added to make the content scrollable */
-  max-height: 60vh; /* Added to limit the height of the content */
+  overflow-y: auto;
+  max-height: 60vh;
 }
 
 h2 {
   font-size: 2.5em;
   color: #34495E;
   margin-bottom: 20px;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1.8em;
+  color: #2C3E50;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
 }
 
 ul {
@@ -250,6 +277,12 @@ ul {
   color: #7F8C8D;
 }
 
+.total-price {
+  font-size: 1.2em;
+  color: #2C3E50;
+  margin-top: 10px;
+}
+
 .btn-cancel, .btn-confirm, .btn-pay {
   background-color: #E74C3C;
   color: white;
@@ -286,6 +319,8 @@ ul {
   position: relative;
   max-width: 500px;
   width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .close {

@@ -42,7 +42,7 @@ export default {
   methods: {
     async submitForm() {
       try {
-        const response = await axios.post('http://localhost:3000/signup', this.form);
+        const response = await axios.post('http://localhost:3000/auth/signup', this.form); 
         alert(response.data.message);
 
         // Store the token and admin status in local storage

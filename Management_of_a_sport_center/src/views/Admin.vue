@@ -228,6 +228,7 @@
           <h3>Are you sure you want to ban this account?</h3>
           <button class="btn-confirm" @click="banUser">Yes</button>
           <button class="btn-cancel" @click="showConfirmBan = false">No</button>
+          <p v-if="banError" class="error">{{ banError }}</p> 
         </div>
       </div>
     </div>
@@ -287,7 +288,8 @@ export default {
       users: [],
       selectedUser: null,
       showUsersPanel: false,
-      showConfirmBan: false
+      showConfirmBan: false,
+      banError: null // Add this line
     };
   },
   async mounted() {
@@ -297,7 +299,7 @@ export default {
   methods: {
     async fetchSports() {
       try {
-        const response = await axios.get('http://localhost:3000/sports');
+        const response = await axios.get('http://localhost:3000/reservations/sports'); 
         this.sports = response.data;
       } catch (error) {
         console.error('Error fetching sports:', error);
@@ -469,7 +471,7 @@ export default {
         this.showConfirmBan = false;
       } catch (error) {
         console.error('Error banning user:', error);
-        alert(error.response.data.message || 'Error banning user');
+        this.banError = 'Error banning user. Please try again.'; // Add this line
       }
     },
     openModifySportModal(sport) {

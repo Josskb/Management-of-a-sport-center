@@ -79,7 +79,7 @@ export default {
   },
   async mounted() {
     try {
-      const response = await axios.get('http://localhost:3000/sports');
+      const response = await axios.get('http://localhost:3000/reservations/sports');
       this.sportsSections = response.data;
     } catch (error) {
       console.error('Error fetching sports:', error);
@@ -131,7 +131,7 @@ export default {
           return;
         }
 
-        const response = await axios.post('http://localhost:3000/reservations', {
+        const response = await axios.post('http://localhost:3000/reservations/reservations', { // Correct endpoint
           type: this.selectedItem.type,
           item_id: this.selectedItem.id,
           date: this.selectedDate
@@ -193,6 +193,9 @@ h2 {
   width: 200px;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .section-card:hover {
@@ -254,6 +257,9 @@ p {
   position: relative;
   max-width: 500px;
   width: 100%;
+  max-height: 75vh;
+  overflow-y: auto;
+  margin-bottom: 15vh; 
 }
 
 .close {
@@ -277,7 +283,7 @@ span {
 
 li {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ccc;
@@ -303,19 +309,28 @@ label {
   margin-bottom: 5px;
 }
 
-/* Media queries for responsive design */
+
 @media (max-width: 768px) {
   .reservation {
-    margin: 10px auto; /* Adjust margin for smaller screens */
-    padding: 20px; /* Adjust padding for smaller screens */
+    margin: 10px auto; 
+    padding: 20px; 
   }
 
   .section-card {
-    width: 100%; /* Make section cards full width on smaller screens */
+    width: 100%; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .modal-content {
-    max-width: 90%; /* Adjust modal width for smaller screens */
+    max-width: 90%;
   }
 }
 

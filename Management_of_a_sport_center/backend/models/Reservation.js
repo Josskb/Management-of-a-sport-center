@@ -1,3 +1,9 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const User = require('./User');
+const Equipment = require('./Equipment');
+const Field = require('./Field');
+
 const Reservation = sequelize.define('Reservation', {
   type: {
     type: DataTypes.ENUM('equipment', 'field'),
@@ -15,7 +21,8 @@ const Reservation = sequelize.define('Reservation', {
     type: DataTypes.INTEGER,
     references: {
       model: User,
-      key: 'id'
+      key: 'id',
+      onDelete: 'CASCADE' 
     }
   },
   confirmed: {
@@ -23,5 +30,7 @@ const Reservation = sequelize.define('Reservation', {
     defaultValue: false
   }
 }, {
-  timestamps: true // Ensure timestamps are enabled
+  timestamps: true
 });
+
+module.exports = Reservation;

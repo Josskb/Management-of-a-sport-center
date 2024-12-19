@@ -214,6 +214,9 @@ router.delete('/users/:id', authenticateJWT, authenticateAdmin, async (req, res)
 router.delete('/reservations/:id', authenticateJWT, authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   try {
+    // Delete associated payment records
+    await Payment.destroy({ where: { reservation_id: id } });
+
     const reservation = await Reservation.findByPk(id);
     if (!reservation) {
       return res.status(404).json({ message: 'Reservation not found' });

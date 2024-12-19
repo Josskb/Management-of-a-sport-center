@@ -13,7 +13,7 @@ const Equipment = sequelize.define('Equipment', {
   sportId: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Sports', // Use the table name directly to avoid circular dependency
+      model: 'Sports',
       key: 'id'
     }
   },
